@@ -131,12 +131,12 @@ class _MaterialControlsState extends State<MaterialControls>
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Colors.black.withOpacity(.75),
+              Colors.black.withOpacity(.7),
               Colors.transparent
             ],
             begin: Alignment.bottomCenter,
-            end: Alignment.center,
-            stops: [.1, 1]
+            end: Alignment.topCenter,
+            stops: [0, .9]
           )
         ),
         child: Row(
