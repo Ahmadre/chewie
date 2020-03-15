@@ -131,7 +131,7 @@ class _MaterialControlsState extends State<MaterialControls>
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Colors.black.withOpacity(.5),
+              Colors.black.withOpacity(.75),
               Colors.transparent
             ],
             begin: Alignment.bottomCenter,
