@@ -22,11 +22,19 @@ class Chewie extends StatefulWidget {
   Chewie({
     Key key,
     this.controller,
+    this.beforeFullScreen,
+    this.afterFullScreen
   })  : assert(controller != null, 'You must provide a chewie controller'),
         super(key: key);
 
   /// The [ChewieController]
   final ChewieController controller;
+
+  /// Function to execute before going into FullScreen
+  final Function beforeFullScreen;
+
+  /// Function to execute after exiting FullScreen
+  final Function afterFullScreen;
 
   @override
   ChewieState createState() {
@@ -138,7 +146,11 @@ class ChewieState extends State<Chewie> {
       Wakelock.enable();
     }
 
+    widget.beforeFullScreen();
+
     await Navigator.of(context, rootNavigator: true).push(route);
+    
+    widget.afterFullScreen();
     _isFullScreen = false;
     widget.controller.exitFullScreen();
 
