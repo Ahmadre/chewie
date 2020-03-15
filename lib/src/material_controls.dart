@@ -16,7 +16,8 @@ class MaterialControls extends StatefulWidget {
   }
 }
 
-class _MaterialControlsState extends State<MaterialControls> {
+class _MaterialControlsState extends State<MaterialControls>
+    with SingleTickerProviderStateMixin {
   VideoPlayerValue _latestValue;
   double _latestVolume;
   bool _hideStuff = true;
@@ -31,6 +32,19 @@ class _MaterialControlsState extends State<MaterialControls> {
 
   VideoPlayerController controller;
   ChewieController chewieController;
+
+  AnimationController animationController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 300),
+      reverseDuration: Duration(milliseconds: 300),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +128,17 @@ class _MaterialControlsState extends State<MaterialControls> {
       duration: Duration(milliseconds: 300),
       child: Container(
         height: barHeight,
-        color: Theme.of(context).dialogBackgroundColor,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.black.withOpacity(.5),
+              Colors.transparent
+            ],
+            begin: Alignment.bottomCenter,
+            end: Alignment.center,
+            stops: [.1, 1]
+          )
+        ),
         child: Row(
           children: <Widget>[
             _buildPlayPause(controller),
@@ -190,13 +214,24 @@ class _MaterialControlsState extends State<MaterialControls> {
               child: GestureDetector(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).dialogBackgroundColor,
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(48.0),
                   ),
                   child: Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: Icon(Icons.play_arrow, size: 32.0),
-                  ),
+                      padding: EdgeInsets.all(12.0),
+                      child: _latestValue != null &&
+                              _latestValue.position >= _latestValue.duration
+                          ? Icon(Icons.replay,
+                              semanticLabel: 'Replay',
+                              size: 50.0,
+                              color: Colors.white)
+                          : AnimatedIcon(
+                              icon: AnimatedIcons.play_pause,
+                              progress: animationController,
+                              semanticLabel: 'Play/Pause',
+                              size: 50.0,
+                              color: Colors.white,
+                            )),
                 ),
               ),
             ),
@@ -327,6 +362,7 @@ class _MaterialControlsState extends State<MaterialControls> {
 
     setState(() {
       if (controller.value.isPlaying) {
+        animationController.reverse();
         _hideStuff = false;
         _hideTimer?.cancel();
         controller.pause();
@@ -335,12 +371,14 @@ class _MaterialControlsState extends State<MaterialControls> {
 
         if (!controller.value.initialized) {
           controller.initialize().then((_) {
+            animationController.forward();
             controller.play();
           });
         } else {
           if (isFinished) {
             controller.seekTo(Duration(seconds: 0));
           }
+          animationController.forward();
           controller.play();
         }
       }

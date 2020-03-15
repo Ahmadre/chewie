@@ -19,12 +19,9 @@ typedef Widget ChewieRoutePageBuilder(
 /// `video_player` is pretty low level. Chewie wraps it in a friendly skin to
 /// make it easy to use!
 class Chewie extends StatefulWidget {
-  Chewie({
-    Key key,
-    this.controller,
-    this.beforeFullScreen,
-    this.afterFullScreen
-  })  : assert(controller != null, 'You must provide a chewie controller'),
+  Chewie(
+      {Key key, this.controller, this.beforeFullScreen, this.afterFullScreen})
+      : assert(controller != null, 'You must provide a chewie controller'),
         super(key: key);
 
   /// The [ChewieController]
@@ -129,34 +126,37 @@ class ChewieState extends State<Chewie> {
   }
 
   Future<dynamic> _pushFullScreenWidget(BuildContext context) async {
-    final isAndroid = Theme.of(context).platform == TargetPlatform.android;
+    final isMobile = Theme.of(context).platform == TargetPlatform.android || Theme.of(context).platform == TargetPlatform.iOS;
     final TransitionRoute<Null> route = PageRouteBuilder<Null>(
       pageBuilder: _fullScreenRoutePageBuilder,
     );
 
     SystemChrome.setEnabledSystemUIOverlays([]);
-    if (isAndroid) {
+    if (isMobile) {
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,
       ]);
     }
 
-    if (!widget.controller.allowedScreenSleep) {
+    if (!widget.controller.allowedScreenSleep && isMobile) {
       Wakelock.enable();
     }
 
-    widget.beforeFullScreen();
+    if (widget.beforeFullScreen != null) widget.beforeFullScreen();
 
     await Navigator.of(context, rootNavigator: true).push(route);
-    
-    widget.afterFullScreen();
+
+    if (widget.afterFullScreen != null) widget.afterFullScreen();
     _isFullScreen = false;
     widget.controller.exitFullScreen();
 
     // The wakelock plugins checks whether it needs to perform an action internally,
     // so we do not need to check Wakelock.isEnabled.
-    Wakelock.disable();
+    if (isMobile) {
+      Wakelock.disable();
+    }
+    
 
     SystemChrome.setEnabledSystemUIOverlays(
         widget.controller.systemOverlaysAfterFullScreen);
