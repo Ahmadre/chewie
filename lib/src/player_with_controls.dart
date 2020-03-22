@@ -1,6 +1,3 @@
-import 'dart:math';
-import 'dart:ui';
-
 import 'package:chewie/src/chewie_player.dart';
 import 'package:chewie/src/material_controls.dart';
 import 'package:flutter/foundation.dart';
@@ -20,15 +17,6 @@ class PlayerWithControls extends StatelessWidget {
       final height = size.height;
 
       return width > height ? width / height : height / width;
-    }
-
-    double _calculateScale() {
-      final double videoAspectRatio =
-          chewieController.videoPlayerController.value.aspectRatio;
-      final Size screenSize = MediaQuery.of(context).size;
-      final double screenAspectRatio = screenSize.aspectRatio;
-      return max(screenAspectRatio / videoAspectRatio,
-          videoAspectRatio / screenAspectRatio);
     }
 
     Widget _buildControls(
