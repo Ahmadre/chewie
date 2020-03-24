@@ -210,7 +210,7 @@ class _MaterialControlsState extends State<MaterialControls>
         child: Container(
           height: barHeight,
           padding: EdgeInsets.only(
-            left: 8.0,
+            left: 4.0,
             right: 8.0,
           ),
           child: Center(
@@ -304,7 +304,7 @@ class _MaterialControlsState extends State<MaterialControls>
               height: barHeight,
               padding: EdgeInsets.only(
                 left: 8.0,
-                right: 8.0,
+                right: 4.0,
               ),
               child: Icon(
                 (_latestValue != null && _latestValue.volume > 0)
@@ -345,7 +345,7 @@ class _MaterialControlsState extends State<MaterialControls>
         : Duration.zero;
 
     return Padding(
-        padding: EdgeInsets.only(left: 24.0),
+        padding: EdgeInsets.only(left: 8.0),
         child: RichText(
             text: TextSpan(
                 text: '${formatDuration(position)}',
@@ -453,7 +453,7 @@ class _MaterialControlsState extends State<MaterialControls>
   Widget _buildProgressBar() {
     return Container(
       alignment: Alignment.topCenter,
-      padding: EdgeInsets.symmetric(horizontal: 20),
+      padding: EdgeInsets.symmetric(horizontal: 8),
       child: MaterialVideoProgressBar(
         controller,
         onDragStart: () {
