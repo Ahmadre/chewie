@@ -27,7 +27,7 @@ class _MaterialControlsState extends State<MaterialControls>
   bool _dragging = false;
   bool _displayTapped = false;
 
-  final barHeight = 48.0;
+  final barHeight = 55.0;
   final marginSize = 5.0;
 
   VideoPlayerController controller;
@@ -39,11 +39,13 @@ class _MaterialControlsState extends State<MaterialControls>
   void initState() {
     super.initState();
 
-    animationController = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 300),
-      reverseDuration: Duration(milliseconds: 300),
-    );
+    if (animationController == null) {
+      animationController = AnimationController(
+        vsync: this,
+        duration: Duration(milliseconds: 300),
+        reverseDuration: Duration(milliseconds: 300),
+      );
+    }
   }
 
   @override
@@ -71,20 +73,38 @@ class _MaterialControlsState extends State<MaterialControls>
         onTap: () => _cancelAndRestartTimer(),
         child: AbsorbPointer(
           absorbing: _hideStuff,
-          child: Column(
-            children: <Widget>[
-              _latestValue != null &&
-                          !_latestValue.isPlaying &&
-                          _latestValue.duration == null ||
-                      _latestValue.isBuffering
-                  ? const Expanded(
-                      child: const Center(
-                        child: const CircularProgressIndicator(),
-                      ),
-                    )
-                  : _buildHitArea(),
-              _buildBottomBar(context),
-            ],
+          child: AnimatedOpacity(
+            duration: Duration(milliseconds: 300),
+            opacity: _hideStuff ? 0.0 : 1.0,
+            child: Container(
+              padding: EdgeInsets.only(bottom: chewieController.isLive ? 0 : 20),
+              decoration: !_hideStuff
+                  ? BoxDecoration(
+                      gradient: LinearGradient(
+                          colors: [
+                            Colors.black.withOpacity(.7),
+                            Colors.transparent
+                          ],
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          stops: [0, .9]))
+                  : null,
+              child: Column(
+                children: <Widget>[
+                  _latestValue != null &&
+                              !_latestValue.isPlaying &&
+                              _latestValue.duration == null ||
+                          _latestValue.isBuffering
+                      ? const Expanded(
+                          child: const Center(
+                            child: const CircularProgressIndicator(),
+                          ),
+                        )
+                      : _buildHitArea(),
+                  _buildBottomBar(context),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -118,6 +138,23 @@ class _MaterialControlsState extends State<MaterialControls>
     super.didChangeDependencies();
   }
 
+  Widget _buildLiveIndicator() {
+    return Container(
+        margin: EdgeInsets.only(left: 10),
+        alignment: Alignment.center,
+        child: Row(children: [
+          Container(
+            margin: EdgeInsets.only(right: 5),
+            height: 7,
+            width: 7,
+            decoration:
+                BoxDecoration(shape: BoxShape.circle, color: Colors.red),
+            child: SizedBox(),
+          ),
+          const Text('LIVE', style: TextStyle(color: Colors.white))
+        ]));
+  }
+
   AnimatedOpacity _buildBottomBar(
     BuildContext context,
   ) {
@@ -127,31 +164,37 @@ class _MaterialControlsState extends State<MaterialControls>
       opacity: _hideStuff ? 0.0 : 1.0,
       duration: Duration(milliseconds: 300),
       child: Container(
-        height: barHeight,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.black.withOpacity(.7),
-              Colors.transparent
-            ],
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-            stops: [0, .9]
-          )
-        ),
-        child: Row(
+        height: !chewieController.isLive ? barHeight : 48,
+        child: Stack(
           children: <Widget>[
-            _buildPlayPause(controller),
-            chewieController.isLive
-                ? Expanded(child: const Text('LIVE'))
-                : _buildPosition(iconColor),
-            chewieController.isLive ? const SizedBox() : _buildProgressBar(),
-            chewieController.allowMuting
-                ? _buildMuteButton(controller)
-                : Container(),
-            chewieController.allowFullScreen
-                ? _buildExpandButton()
-                : Container(),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: chewieController.isLive ? 0 : null,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  chewieController.isLive
+                      ? _buildLiveIndicator()
+                      : _buildPosition(iconColor),
+                  Spacer(),
+                  chewieController.allowMuting
+                      ? _buildMuteButton(controller)
+                      : Container(),
+                  chewieController.allowFullScreen
+                      ? _buildExpandButton()
+                      : Container(),
+                ],
+              ),
+            ),
+            if (!chewieController.isLive)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: _buildProgressBar(),
+              )
           ],
         ),
       ),
@@ -166,7 +209,6 @@ class _MaterialControlsState extends State<MaterialControls>
         duration: Duration(milliseconds: 300),
         child: Container(
           height: barHeight,
-          margin: EdgeInsets.only(right: 12.0),
           padding: EdgeInsets.only(
             left: 8.0,
             right: 8.0,
@@ -195,8 +237,6 @@ class _MaterialControlsState extends State<MaterialControls>
             } else
               _cancelAndRestartTimer();
           } else {
-            _playPause();
-
             setState(() {
               _hideStuff = true;
             });
@@ -206,33 +246,33 @@ class _MaterialControlsState extends State<MaterialControls>
           color: Colors.transparent,
           child: Center(
             child: AnimatedOpacity(
-              opacity:
-                  _latestValue != null && !_latestValue.isPlaying && !_dragging
-                      ? 1.0
-                      : 0.0,
+              opacity: _dragging || !_hideStuff ? 1.0 : 0.0,
               duration: Duration(milliseconds: 300),
               child: GestureDetector(
                 child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(48.0),
-                  ),
-                  child: Padding(
-                      padding: EdgeInsets.all(12.0),
-                      child: _latestValue != null &&
-                              _latestValue.position >= _latestValue.duration
-                          ? Icon(Icons.replay,
-                              semanticLabel: 'Replay',
-                              size: 50.0,
-                              color: Colors.white)
-                          : AnimatedIcon(
-                              icon: AnimatedIcons.play_pause,
-                              progress: animationController,
-                              semanticLabel: 'Play/Pause',
-                              size: 50.0,
-                              color: Colors.white,
-                            )),
-                ),
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(48.0),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.all(12.0).copyWith(top: 20),
+                      child: IconButton(
+                        icon: _latestValue != null &&
+                                _latestValue.position >= _latestValue.duration
+                            ? Icon(Icons.replay,
+                                semanticLabel: 'Replay',
+                                size: 50.0,
+                                color: Colors.white)
+                            : AnimatedIcon(
+                                icon: AnimatedIcons.play_pause,
+                                progress: animationController,
+                                semanticLabel: 'Play/Pause',
+                                size: 50.0,
+                                color: Colors.white,
+                              ),
+                        onPressed: () => _playPause(),
+                      ),
+                    )),
               ),
             ),
           ),
@@ -305,14 +345,25 @@ class _MaterialControlsState extends State<MaterialControls>
         : Duration.zero;
 
     return Padding(
-      padding: EdgeInsets.only(right: 24.0),
-      child: Text(
-        '${formatDuration(position)} / ${formatDuration(duration)}',
-        style: TextStyle(
-          fontSize: 14.0,
-        ),
-      ),
-    );
+        padding: EdgeInsets.only(left: 24.0),
+        child: RichText(
+            text: TextSpan(
+                text: '${formatDuration(position)}',
+                children: [
+                  TextSpan(
+                      text: ' / ',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(.75),
+                        fontSize: 14.0,
+                      )),
+                  TextSpan(
+                      text: '${formatDuration(duration)}',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(.75),
+                        fontSize: 14.0,
+                      )),
+                ],
+                style: TextStyle(color: Colors.white, fontSize: 14.0))));
   }
 
   void _cancelAndRestartTimer() {
@@ -400,32 +451,31 @@ class _MaterialControlsState extends State<MaterialControls>
   }
 
   Widget _buildProgressBar() {
-    return Expanded(
-      child: Padding(
-        padding: EdgeInsets.only(right: 20.0),
-        child: MaterialVideoProgressBar(
-          controller,
-          onDragStart: () {
-            setState(() {
-              _dragging = true;
-            });
+    return Container(
+      alignment: Alignment.topCenter,
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: MaterialVideoProgressBar(
+        controller,
+        onDragStart: () {
+          setState(() {
+            _dragging = true;
+          });
 
-            _hideTimer?.cancel();
-          },
-          onDragEnd: () {
-            setState(() {
-              _dragging = false;
-            });
+          _hideTimer?.cancel();
+        },
+        onDragEnd: () {
+          setState(() {
+            _dragging = false;
+          });
 
-            _startHideTimer();
-          },
-          colors: chewieController.materialProgressColors ??
-              ChewieProgressColors(
-                  playedColor: Theme.of(context).accentColor,
-                  handleColor: Theme.of(context).accentColor,
-                  bufferedColor: Theme.of(context).backgroundColor,
-                  backgroundColor: Theme.of(context).disabledColor),
-        ),
+          _startHideTimer();
+        },
+        colors: chewieController.materialProgressColors ??
+            ChewieProgressColors(
+                playedColor: Theme.of(context).accentColor,
+                handleColor: Theme.of(context).accentColor,
+                bufferedColor: Theme.of(context).backgroundColor,
+                backgroundColor: Theme.of(context).disabledColor),
       ),
     );
   }

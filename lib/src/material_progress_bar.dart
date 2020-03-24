@@ -61,7 +61,7 @@ class _VideoProgressBarState extends State<MaterialVideoProgressBar> {
     return GestureDetector(
       child: Center(
         child: Container(
-          height: MediaQuery.of(context).size.height / 2,
+          height: 10,
           width: MediaQuery.of(context).size.width,
           color: Colors.transparent,
           child: CustomPaint(
