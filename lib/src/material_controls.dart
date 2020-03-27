@@ -255,7 +255,7 @@ class _MaterialControlsState extends State<MaterialControls>
                       borderRadius: BorderRadius.circular(48.0),
                     ),
                     child: Padding(
-                      padding: EdgeInsets.all(12.0).copyWith(top: 20),
+                      padding: EdgeInsets.all(12.0).copyWith(top: 30),
                       child: IconButton(
                         icon: _latestValue != null &&
                                 _latestValue.position >= _latestValue.duration
