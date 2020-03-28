@@ -218,6 +218,7 @@ class _MaterialControlsState extends State<MaterialControls>
               chewieController.isFullScreen
                   ? Icons.fullscreen_exit
                   : Icons.fullscreen,
+              color: Colors.white,
             ),
           ),
         ),
@@ -257,8 +258,9 @@ class _MaterialControlsState extends State<MaterialControls>
                     child: Padding(
                       padding: EdgeInsets.all(12.0).copyWith(top: 30),
                       child: IconButton(
-                        icon: _latestValue != null &&
-                                _latestValue.position >= _latestValue.duration
+                        icon: _latestValue != null 
+                              && _latestValue.position >= _latestValue.duration
+                              && !chewieController.isLive
                             ? Icon(Icons.replay,
                                 semanticLabel: 'Replay',
                                 size: 50.0,
@@ -310,6 +312,7 @@ class _MaterialControlsState extends State<MaterialControls>
                 (_latestValue != null && _latestValue.volume > 0)
                     ? Icons.volume_up
                     : Icons.volume_off,
+                color: Colors.white,
               ),
             ),
           ),
